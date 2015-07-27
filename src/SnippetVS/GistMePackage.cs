@@ -122,35 +122,12 @@ namespace SnippetVS
             return String.Empty;
         }
 
-        private void GoToGist(string target)
+        private void GoToGist(string contents)
         {
-            if (String.IsNullOrWhiteSpace(target))
-            {
-                ShowStatus($"No link provided");
-                return;
-            }
-            try
-            {
-                System.Diagnostics.Process.Start(target);
-                ShowStatus($"Gist saved in {target}");
-            }
-            catch (System.ComponentModel.Win32Exception noBrowser)
-            {
-                if (noBrowser.ErrorCode == -2147467259)
-                {
-                    ShowStatus($"Unable to open a web browser.");
-                }
-#if DEBUG
-                System.Diagnostics.Debugger.Break();
-#endif
-            }
-            catch (System.Exception other)
-            {
-                ShowStatus($"Another error.");
-#if DEBUG
-                System.Diagnostics.Debugger.Break();
-#endif
-            }
+            System.Diagnostics.Process.Start(
+                @"C:\Users\Amadeus\Documents\GitHub\SnippetVS\gitIntegration\gitIntegration\bin\Debug\gitIntegration.exe",
+                contents
+                );
         }
     }
 }
