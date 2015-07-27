@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
 
 namespace SnippetVS
 {
@@ -72,6 +74,10 @@ namespace SnippetVS
             GistMe.Initialize(this);
             base.Initialize();
             _statusBar = ServiceProvider.GlobalProvider.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
+
+            var componentModel = (IComponentModel)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SComponentModel));
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            SolutionManager.CurrentWorkspace = workspace;
         }
 
         #endregion
@@ -96,11 +102,12 @@ namespace SnippetVS
         internal void MenuItemCallback(object sender, EventArgs e)
         {
             IVsTextManager textManager = (IVsTextManager)GetService(typeof(SVsTextManager));
-            int caretPosition;
+            int startPosition, endPosition;
             string filePath;
-            if (TextManagerHelpers.TryFindDocumentAndPosition(textManager, out filePath, out caretPosition))
+            if (TextManagerHelpers.TryFindDocumentAndPosition(textManager, out filePath, out startPosition, out endPosition))
             {
-                PrepareGist();
+                var target = PrepareGist(filePath, startPosition, endPosition);
+                GoToGist(target);
             }
             else
             {
@@ -108,9 +115,20 @@ namespace SnippetVS
             }
         }
 
-        private void PrepareGist()
+        private string PrepareGist(string filePath, int startPosition, int endPosition)
         {
-            var target = "https://comealive.io/"; // TODO: get the gist link
+            var analyzer = new DocumentAnalyzer();
+            var element = analyzer.FindContainedMethods(filePath, startPosition, endPosition);
+            return String.Empty;
+        }
+
+        private void GoToGist(string target)
+        {
+            if (String.IsNullOrWhiteSpace(target))
+            {
+                ShowStatus($"No link provided");
+                return;
+            }
             try
             {
                 System.Diagnostics.Process.Start(target);

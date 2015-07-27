@@ -14,27 +14,30 @@ namespace SnippetVS
         /// current selection in the editor (supplied via textManager)
         /// </summary>
         /// <param name="textManager">Instance of IVsTextManager taken from the Package</param>
-        public static bool TryFindDocumentAndPosition(IVsTextManager textManager, out string filePath, out int caretPosition)
+        public static bool TryFindDocumentAndPosition(IVsTextManager textManager, out string filePath, out int selectionStart, out int selectionEnd)
         {
             IWpfTextView view = GetActiveTextView(textManager);
             if (view == null)
             {
                 // We couldn't get the ITextDocument
                 filePath = null;
-                caretPosition = -1;
+                selectionStart = -1;
+                selectionEnd = -1;
                 return false;
             }
 
             ITextBuffer sourceBuffer = view.TextBuffer;
-            caretPosition = view.Caret.Position.BufferPosition;
+            selectionStart = view.Selection.Start.Position.Position;
+            selectionEnd = view.Selection.End.Position.Position;
+            //caretPosition = view.Caret.Position.BufferPosition;
 
             //Check if this is an elision buffer
             //If so, we need to take a look at the actual source buffer
             var elisionBuffer = sourceBuffer as IElisionBuffer;
             if (elisionBuffer != null)
             {
-                sourceBuffer = elisionBuffer.SourceBuffer;
-                caretPosition = elisionBuffer.CurrentSnapshot.MapToSourceSnapshot(caretPosition);
+                //sourceBuffer = elisionBuffer.SourceBuffer;
+                //caretPosition = elisionBuffer.CurrentSnapshot.MapToSourceSnapshot(caretPosition);
             }
 
             // See what file are we in
