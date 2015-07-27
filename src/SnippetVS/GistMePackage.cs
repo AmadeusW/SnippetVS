@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace SnippetVS
 {
@@ -47,6 +48,7 @@ namespace SnippetVS
         /// GistMePackage GUID string.
         /// </summary>
         public const string PackageGuidString = "a403d8d5-767d-4575-9ad3-fd83db87ebc3";
+        IVsStatusbar _statusBar;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GistMe"/> class.
@@ -69,8 +71,68 @@ namespace SnippetVS
         {
             GistMe.Initialize(this);
             base.Initialize();
+            _statusBar = ServiceProvider.GlobalProvider.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
         }
 
         #endregion
+
+        public void ShowStatus(string message)
+        {
+            int frozen;
+            _statusBar.IsFrozen(out frozen);
+            if (frozen == 0)
+            {
+                _statusBar.SetText(message);
+            }
+        }
+
+        /// <summary>
+        /// This function is the callback used to execute the command when the menu item is clicked.
+        /// See the constructor to see how the menu item is associated with this function using
+        /// OleMenuCommandService service and MenuCommand class.
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
+        internal void MenuItemCallback(object sender, EventArgs e)
+        {
+            IVsTextManager textManager = (IVsTextManager)GetService(typeof(SVsTextManager));
+            int caretPosition;
+            string filePath;
+            if (TextManagerHelpers.TryFindDocumentAndPosition(textManager, out filePath, out caretPosition))
+            {
+                PrepareGist();
+            }
+            else
+            {
+                ShowStatus("To capture a gist, place the cursor in C# code first.");
+            }
+        }
+
+        private void PrepareGist()
+        {
+            var target = "https://comealive.io/"; // TODO: get the gist link
+            try
+            {
+                System.Diagnostics.Process.Start(target);
+                ShowStatus($"Gist saved in {target}");
+            }
+            catch (System.ComponentModel.Win32Exception noBrowser)
+            {
+                if (noBrowser.ErrorCode == -2147467259)
+                {
+                    ShowStatus($"Unable to open a web browser.");
+                }
+#if DEBUG
+                System.Diagnostics.Debugger.Break();
+#endif
+            }
+            catch (System.Exception other)
+            {
+                ShowStatus($"Another error.");
+#if DEBUG
+                System.Diagnostics.Debugger.Break();
+#endif
+            }
+        }
     }
 }
