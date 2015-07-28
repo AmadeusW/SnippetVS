@@ -18,6 +18,8 @@ using Microsoft.Win32;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace SnippetVS
 {
@@ -119,15 +121,15 @@ namespace SnippetVS
         {
             var analyzer = new DocumentAnalyzer();
             var element = analyzer.FindContainedMethods(filePath, startPosition, endPosition);
-            return String.Empty;
+            File.WriteAllText(@"D:\test.txt", element);
+            return element;
         }
 
         private void GoToGist(string contents)
         {
             System.Diagnostics.Process.Start(
-                @"C:\Users\Amadeus\Documents\GitHub\SnippetVS\gitIntegration\gitIntegration\bin\Debug\gitIntegration.exe",
-                contents
-                );
+                @"C:\Users\Amadeus\Documents\GitHub\SnippetVS\gitIntegration\gitIntegration\bin\Debug\gitIntegration.exe");
         }
+
     }
 }

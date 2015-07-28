@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,13 +11,24 @@ namespace gitIntegration
     {
         static void Main(string[] args)
         {
-            var contents = args[0];
+            try
+            {
+                var contents = File.ReadAllText(@"D:\test.txt");
 
-            var integration = new GitIntegration();
-            var url = integration.CreateGist(contents);
+                var integration = new GitIntegration();
+                var url = integration.CreateGist(contents);
 
-            GoToGist(url.Result);
+                GoToGist(url.Result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception " + ex.ToString());
+                Console.ReadKey();
+            }
+            var y = x;
         }
+
+        static int x = 56;
 
         private static void GoToGist(string target)
         {
